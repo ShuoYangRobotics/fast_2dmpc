@@ -36,7 +36,56 @@ Install
    libraries, as in
     
         >> mex mympc_sim.c -L/opt/acml/lib -lacml -lacml_mv -lgfortran
-       
-5. Test the installation by running the test code mympc_test
+
+5. Install CVX package, please refer to http://cvxr.com/cvx/download/
+6. Test the installation by running the test code mympc_test
 
         >>mympc_test
+        
+Function Description
+----------------------
+The function can be called with following command
+
+    [z,t] = mympc_step(sys, param, DX0, E0, R0);
+
+where inputs are
+
+    System description (sys structure):
+
+    sys.A        :   system matrix A
+    sys.B        :   input matrix B
+    sys.C        :   system matrix C
+    sys.D        :   input matrix D
+    sys.Q        :   state cost matrix Q
+    sys.R        :   input cost matrix R
+    sys.dxmax    :   state upper limits dx_{max}
+    sys.dxmin    :   state lower limits dx_{min}
+    sys.emax     :   input upper limits e_{max}
+    sys.emin     :   input lower limits e_{min}
+    sys.rmax     :   input upper limits r_{max}
+    sys.rmin     :   input lower limits r_{min}
+    sys.n        :   number of states
+    sys.m        :   number of inputs
+    sys.dx0      :   intial state
+    sys.prev_e   :   errors of each time instance in the previous batch
+
+    MPC parameters (params structure):
+
+    param.T        :   MPC horizon T
+    param.c_type   :   type of constraint on input r
+    param.kappa    :   barrier parameter
+    param.niters   :   number of newton iterations
+    param.quiet    :   no output to display if true
+
+    Other inputs
+    DX0   :   warm start DX trajectory (n by T+1 matrix)
+    E0    :   warm start E trajectory (n by T+1 matrix)
+    R0    :   warm start R trajectory (n by T+2 matrix)
+    
+Outputs are
+
+    z    :    Solved output sequence
+    t    :    CPU time used for solving the problem
+    
+    
+    
