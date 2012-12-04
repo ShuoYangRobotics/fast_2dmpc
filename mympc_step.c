@@ -70,13 +70,10 @@ void dnudz2(double* Htwo, double *G, double *tmpG, double *phi,
 			double *PTd1, double *PTd2, double *be,
 			int dim0, int dim1, int dim2, double kappa,
 			double *PhiQ, double *PhiR, double *PhiS, double *Y, double *L,
-			//six tmp storage
 			double *tmps, double *tmps1, double *tmps2, 
 			double *tmps3, double *tmps4, double *tmps5,
-			//for computation storage
 			double *tmps6, double *tmpmm, double *tmpnn,
 			double *tmpns, double *tmpns1,
-			//temp storage for compute L
 			double *tmpll1,	double *tmpll2, double *tmpll3,
 			int T, int n, int m,
 			double *rd, double *rp, double *dz, double *dnu);
@@ -484,7 +481,6 @@ void fmpcsolve(double *A, double *B, double *C, double *D,
 	//z = z0
 	dptr = z;
 	for (i=0; i < dim1; i++) *dptr++ = *(z0+i);
-	//nu = nu0  !!!!!!!!!! choose 5, is that OK? !!!!!!!!!!!!!!!!
 	dptr = nu;
 	for (i=0; i < dim2; i++) nu[i] = 10;
 	
@@ -916,7 +912,6 @@ void dnudz1(double* Htwo, double *G, double *tmpG, double *phi,
 	 */
 	//phi = 2H
 	for (i = 0; i< dim1*dim1; i++) phi[i] = Htwo[i];
-	//printmat(phi,dim1,dim1);
 	//first compute P1^Td1^2P1, it is (PTd1)(PTd1)^T
 	//phi = phi + kappa*(PTd1)(PTd1)^T
 	F77_CALL(dgemm)("n","t",&dim1,&dim1,&INT_ONE,&kappa,PTd1,&dim1,PTd1,&dim1,&DOU_ONE,phi,&dim1);
@@ -928,21 +923,16 @@ void dnudz1(double* Htwo, double *G, double *tmpG, double *phi,
 	 *   compute dnu dz
 	 */
 	// G dz = -rp
-	//printmat(rp,1,dim2);
-	//printmat(G,dim2,dim1);
 	tmp = malloc(sizeof(double)*INT_ONE);
 	for (i = 0; i< dim1*dim2; i++) tmpG[i] = G[i];
 	for (i = 0; i< dim2; i++) dz[i] = -rp[i];
 	
-	//printmat(z,1,dim1);
-	//printmat(dz,1,dim1);
-	//printmat(dz,1,dim1);
 	F77_CALL(dgels)("n",&dim2,&dim1,&INT_ONE,tmpG,&dim2,dz,&dim1,&tmpopt,&lwork,&i);
 	lwork = (int)tmpopt;
-	//printmat(dz,1,dim1);
+
 	tmp = (double*)malloc( lwork*sizeof(double) );
 	F77_CALL(dgels)("n",&dim2,&dim1,&INT_ONE,tmpG,&dim2,dz,&dim1,tmp,&lwork,&i);
-	//printmat(dz,1,dim1);
+
 	free(tmp);
 	// PTd1(as a tmp storage) = -rd - phi*dz
 	for (i = 0; i< dim1; i++) PTd1[i] = -rd[i];
@@ -950,18 +940,12 @@ void dnudz1(double* Htwo, double *G, double *tmpG, double *phi,
 	
 	//G^T dnu = PTd1
 	lwork = -1;
-	//printmat(PTd1,1,dim1);
 	F77_CALL(dgels)("t",&dim2,&dim1,&INT_ONE,tmpG,&dim2,PTd1,&dim1,&tmpopt,&lwork,&i);
 	lwork = (int)tmpopt;
-	//printmat(PTd1,1,dim1);
 	tmp = (double*)malloc( lwork*sizeof(double) );
 	F77_CALL(dgels)("t",&dim2,&dim1,&INT_ONE,tmpG,&dim2,PTd1,&dim1,tmp,&lwork,&i);
-	//printmat(PTd1,1,dim1);
 	for (i = 0; i< dim2; i++) dnu[i] = PTd1[i];
 	free(tmp);
-	//printmat(z,1,dim1);
-	//printmat(dz,1,dim1);
-	//printmat(dnu,1,dim2);
 	return;
 }
 
@@ -1003,7 +987,6 @@ void rdrp2(double *z, double *nu,
 	{
 		PTd1[(T+1)*(2*n+m)+i] =PTd2[(T+1)*(2*n+m)+i] = 0;
 	}
-	//printmat(PTd1, dim1, 1);
 	//rp = Gz - b 
 	for (i = 0; i< dim2; i++) rp[i] = -b[i];
 	F77_CALL(dgemv)("n",&dim2,&dim1,&DOU_ONE,G,&dim2,z,&INT_ONE,&DOU_ONE,rp,&INT_ONE);
@@ -1100,11 +1083,6 @@ void dnudz2(double* Htwo, double *G, double *tmpG, double *phi,
 			dptr++; dptr1++;
 		}	
 	}
-	//printf("finish PhR ");
-	// printf("=====\n");
-	// printmat(PhiR,m*m*(T+2),1);
-	// printmat(PhiR,m*m,1);
-	// printf("=====\n");
 	dptr1 = phi; dptr2 = PhiS; 
 	for (i = 0; i < T+1; i++)
 	{
@@ -1121,7 +1099,7 @@ void dnudz2(double* Htwo, double *G, double *tmpG, double *phi,
 			}	
 		}
 	}
-	//printf("finish PhS ");
+
 	dptr1 = phi; dptr3 = PhiQ; 
 	for (i = 0; i < T+1; i++)
 	{
@@ -1138,23 +1116,13 @@ void dnudz2(double* Htwo, double *G, double *tmpG, double *phi,
 			}	
 		}
 	}
-	//printf("finish PhQ \n");
-	//printmat(phi,dim1,dim1);
 	//second formulate Y
-	//printf("ready to initialize Y \n");
-	//for (i = 0; i < dim2*dim2; i++) Y[i] = 0;
-	//printf("finish initialize Y \n");
+
 	dptr = Y; 
 	//Y_00
 	//tmps = Y_00_11
 	KeqPXQ(tmps, B,PhiR,Bt, tmps6, tmpns1, m, n, n, DOU_ONE, tmpmm);
-	// printf("=====\n");
-	// printmat(PhiR,m*m*(T+2),1);
-	// printmat(PhiR,m*m,1);
-	// printf("=====\n");
-	// printf("==\n");
-	// printmat(tmps,n,n);
-	// printf("==\n");
+
 	for (i = 0; i < n; i++) tmps[i*n+i] += PhiS[i*n+i];
 	//tmps1 = Y_00_21
 	KeqPXQ(tmps1, CB,PhiR,Bt, tmps6, tmpns1, m, n, n, DOU_N_ONE, tmpmm);
@@ -1164,7 +1132,6 @@ void dnudz2(double* Htwo, double *G, double *tmpG, double *phi,
 	KeqPXQ(tmps3, CB,PhiR,CBt, tmps6, tmpns1, m, n, n, DOU_ONE, tmpmm);
 	KeqPXQ(tmps4, D,PhiR+m*m,Dt, tmps6, tmpns1, m, n, n, DOU_ONE, tmpmm);
 	for (i = 0; i < n*n; i++) tmps3[i] = tmps3[i] + tmps4[i] + PhiS[i];
-	//("Calculated Y_00\n");
 	//put Y_00 into Y
 	dptr1 = tmps; dptr2 = tmps1; dptr3 = tmps2; dptr4 = tmps3;
 	for (i = 0; i < n; i++)
@@ -1398,7 +1365,6 @@ void dnudz2(double* Htwo, double *G, double *tmpG, double *phi,
 		}
 
 	}
-	//printf("finish Y except for Y_TT\n");
 	curr_PhiR = PhiR+T*m*m;
 	curr_PhiS = PhiS+T*n*n;
 	curr_PhiQ = PhiQ+T*n*n;
@@ -1455,22 +1421,13 @@ void dnudz2(double* Htwo, double *G, double *tmpG, double *phi,
 	dptr = L; 
 	// tmpll1 = L_00
 	for (i = 0; i < 4*n*n; i++) tmpll1[i] = *(Y+i);
-	// printf("=====\n");
-	// printmat(tmpll1,2*n,2*n);
 	F77_CALL(dpotrf)("L",&ntwo,tmpll1,&ntwo,&info);
-	// printf("\n info is %d \n",info);
-	// printmat(tmpll1,2*n,2*n);
-	// printf("=====\n");
 	// tmpll2 = L_10
 	for (i = 0; i < 4*n*n; i++) tmpll3[i] = *(Y+4*n*n+i);
 	F77_CALL(dtrtrs)("L","N","N",&ntwo,&ntwo,tmpll1,&ntwo,tmpll3,&ntwo,&info);
 	F77_CALL(dgemm)("t","n",&ntwo,&ntwo,&ntwo,
 					&DOU_ONE,tmpll3,&ntwo,eye2n,&ntwo,&DOU_ZERO,tmpll2,&ntwo);
 	dptr1 = tmpll1; dptr2 = tmpll2;
-	// printf("===\n");
-	// printmat(tmpll1,2*n,2*n);
-	// printmat(tmpll2,2*n,2*n);
-	// printf("===\n");
 	for (i = 0; i < 2*n; i++)
 	{
 		dptr = L + i*dim2;
@@ -1488,11 +1445,9 @@ void dnudz2(double* Htwo, double *G, double *tmpG, double *phi,
 			dptr++; dptr2++;
 		}
 	}
-	//printmat(L,dim2,dim2);
 	
 	for (i = 1; i<T;i++)
 	{
-		//printf("%d",i);
 		//L_ii
 		for (j = 0; j < 4*n*n; j++) tmpll1[j] = *(Y+i*3*4*n*n+j);
 		F77_CALL(dgemm)("n","t",&ntwo,&ntwo,&ntwo,
@@ -1539,7 +1494,6 @@ void dnudz2(double* Htwo, double *G, double *tmpG, double *phi,
 			dptr++; dptr1++;
 		}
 	}
-	//printf("finish L\n");
 			
 	//PTd1 = invPhird
 	for (i = 0; i < dim1; i++) PTd1[i] = rd[i];
@@ -1558,7 +1512,6 @@ void dnudz2(double* Htwo, double *G, double *tmpG, double *phi,
 	curr_blk = (T+1)*(2*n+m);
 	F77_CALL(dposv)("L",&m,&INT_ONE,PhiR+(T+1)*m*m,&m,PTd1+curr_blk,&m,&info);
 	
-	//printmat(PTd1,1,dim1);
 	//beta = -rp+ GinvPhird
 	for (i = 0; i< dim2; i++) be[i] = -rp[i];
 	F77_CALL(dgemv)("n",&dim2,&dim1,&DOU_ONE,G,&dim2,PTd1,&INT_ONE,&DOU_ONE,be,&INT_ONE);
@@ -1576,12 +1529,7 @@ void dnudz2(double* Htwo, double *G, double *tmpG, double *phi,
 	F77_CALL(dgemv)("t",&dim2,&dim1,&DOU_N_ONE,G,&dim2,dnu,&INT_ONE,&DOU_ONE,PTd1,&INT_ONE);
 	F77_CALL(dposv)("L",&dim1,&dim1,phi,&dim1,PTd1,&INT_ONE,&info);
 	for (i = 0; i < dim1; i++) dz[i] = PTd1[i];
-	
-	// printf("==\n");
-	// 	printmat(dz,dim1,1);
-	// 	printmat(dnu,dim2,1);
-	// 	printf("==\n");
-	//printf("Left dnudz.\n");
+
 	return;
 }
 
