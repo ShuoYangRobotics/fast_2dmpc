@@ -121,87 +121,6 @@ for i=1:T+1
     b(1+n+(i-1)*2*n:n+n+(i-1)*2*n) = b(1+n+(i-1)*2*n:n+n+(i-1)*2*n) ...
         + prev_E0(1+(i-1)*n:n+(i-1)*n);
 end
-% z0 =[];
-% for i = 1:T+1
-%     z0 = [z0;[R0;DX0;E0]];
-% end
-% z0 = [z0;R0]
-
-% P = 30*eye(dim1);
-% error = 1e-6;
-% k = 1;
-
-% nu0 = ones(dim2,1);
-% interior point method
-% tic
-% while kappa>1
-%     z = z0;
-%     nu = nu0;
-%     for iter=1:niters
-%         d1 = 1 ./ (h1 - z(1:dim0));
-%         d2 = 1 ./ (h2 + z(1:dim0));
-%         rd = 2*H*z + kappa*(P1'*d1+P2'*d2)+G'*nu;
-%         rp = G*z-b;
-%         
-%         if norm(rd)+norm(rp) <1e-3
-%             print "gah"
-%             break
-%         end
-%         
-%         phi = 2*H + kappa*(P1'*diag(d1.^2)*P1+...
-%             P2'*diag(d2.^2)*P2);
-%         opts.RECT = true;
-%         opts.TRANSA = false;
-%         dz = linsolve(G,-rp,opts);
-%         opts.TRANSA = true;
-%         opts.RECT = true;
-%         dnu = linsolve(G,-rd - phi*dz,opts);
-%         
-%         s = ones(dim1,1);
-%         s =1;
-%         beta = 0.7;
-%         count = 1;
-%         
-%         while count == 1
-%             count = 0;
-%             tmp1 = P1*(z+s.*dz);
-%             
-%             tmp2 = P2*(z+s.*dz);
-%             tmp2-h2
-%             for j=1:dim2
-%                 if tmp1(j)>h1(j)
-%                     count = 1;
-%                     s(j) = s(j)*beta;
-%                 elseif tmp2(j)<h2(j)
-%                     count = 1;
-%                     s(j) = s(j)*beta;
-%                 end
-%             end
-%             
-%         end
-%         while count == 1
-%             count = 0;
-%             tmp = P1*(z+s.*dz);
-%             if sum(tmp>h1)>0
-%                 count = 1;
-%                 s = s*beta;
-%             elseif sum(-tmp<h2)<dim0
-%                 count = 1;
-%                 s = s*beta;
-%             end
-%         end
-%         
-%         z = z +s*dz;
-%         nu = nu +s*dnu;
-%     end
-%     z0 = z;
-%     nu0 = nu;
-%     kappa = kappa/5;
-% end
-% t1 = toc
-% myz = z
-
-%cvx solve
 
 
 cvx_begin
@@ -215,7 +134,6 @@ cvx_end
 t2 = toc
 % 
 [t2 t1]
-%[myz cvx_optpnt.z]
 
 
 
