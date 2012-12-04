@@ -20,7 +20,7 @@ Files
 
 Install
 -------
-1. Fork the repository
+1. Download the repository
 2. Start MATLAB and change to the directory containing the source code file
 3. At the MATLAB command prompt type
 
